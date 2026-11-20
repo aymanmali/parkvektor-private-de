@@ -1,0 +1,33 @@
+[project]
+name = "parkvektor-private-de-edge"
+version = "0.2.0"
+description = "Standalone DSGVO Privacy-by-Design Edge AI ANPR Service for Germany (ONNX YOLO + EU/DE OCR + RTSP)"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "httpx>=0.27.2",
+    "numpy>=1.26.4,<2.4.0",
+    "pillow>=11.0.0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.3",
+    "ruff>=0.7.0",
+]
+
+[tool.uv]
+managed = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]

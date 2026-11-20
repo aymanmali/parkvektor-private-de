@@ -1,0 +1,15 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+RUN pip install --no-cache-dir uv
+
+COPY edge/pyproject.toml edge/requirements-jetson-ml.txt ./
+RUN uv sync --no-dev --python 3.12
+
+COPY edge/pipeline ./pipeline
+COPY edge/plates ./plates
+COPY edge/sync ./sync
+COPY edge/scripts ./scripts
+COPY edge/cli.py ./cli.py
+
+CMD ["uv", "run", "--no-sync", "python", "cli.py", "--mode", "synthetic"]

@@ -1,0 +1,5 @@
+# Optional ML & RTSP acceleration stack for NVIDIA Jetson Orin / x86 Edge boxes
+# Install via: uv pip install -r requirements-jetson-ml.txt
+numpy>=1.26.4,<2.3.0
+onnxruntime>=1.19.2
+opencv-python-headless>=4.10.0.84

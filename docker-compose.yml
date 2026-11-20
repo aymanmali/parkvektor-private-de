@@ -1,0 +1,89 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: parkvektor
+      POSTGRES_PASSWORD: parkvektor_dev_password
+      POSTGRES_DB: parkvektor
+      TZ: Europe/Berlin
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U parkvektor"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin_dev_password
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql+psycopg://parkvektor:parkvektor_dev_password@postgres:5432/parkvektor
+      STORAGE_BACKEND: s3
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_REGION: eu-central-1
+      S3_BUCKET: parkvektor-evidence-de
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_SECRET_ACCESS_KEY: minioadmin_dev_password
+      PAYMENT_PROVIDER: mock
+      FRONTEND_BASE_URL: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000
+      AUTO_SEED_DEMO_DATA: "true"
+    ports:
+      - "8000:8000"
+
+  dsgvo-purge-worker:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.backend
+    depends_on:
+      - backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://parkvektor:parkvektor_dev_password@postgres:5432/parkvektor
+      STORAGE_BACKEND: s3
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_REGION: eu-central-1
+      S3_BUCKET: parkvektor-evidence-de
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_SECRET_ACCESS_KEY: minioadmin_dev_password
+    command: ["uv", "run", "--no-sync", "python", "-m", "app.workers.purge_worker", "--interval-seconds", "300"]
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  pgdata:
+  miniodata:
