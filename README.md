@@ -67,13 +67,6 @@ cd frontend
 npm install
 npm run dev
 ```
-Open (German `de` default, or swap `/de` -> `/en`):
-- Driver QR Pay Portal: `http://localhost:3000/de/pay`
-- Driver AutoPay Wallet: `http://localhost:3000/de/autopay`
-- Touchscreen Pay-on-Foot Kiosk: `http://localhost:3000/de/kiosk`
-- Mall Tenant Validation Portal (Kino-Welt Demo): `http://localhost:3000/de/validate`
-- Driver *Widerspruchsportal* (Disputes & *Fahrerbenennung*): `http://localhost:3000/de/dispute`
-- Operator Admin, QA Violations, KBA `§ 39 StVG` & DSGVO Dashboard: `http://localhost:3000/de/admin`
 
 ### 3. Simulate Real German Vehicles & Cameras
 ```bash
