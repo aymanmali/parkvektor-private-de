@@ -2,12 +2,15 @@
 
 **Barrierless ANPR Private Parking & Ticketing Platform for Germany**
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-10B981?style=flat-square&logo=vercel&logoColor=white)](https://parkvektor-private-de.vercel.app)
 [![CI](https://github.com/aymanmali/parkvektor-private-de/actions/workflows/ci.yml/badge.svg)](https://github.com/aymanmali/parkvektor-private-de/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-0EA5E9?style=flat-square)](./LICENSE)
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
 ![ONNX Runtime](https://img.shields.io/badge/ONNX_Runtime-005CED?style=flat-square&logo=onnx&logoColor=white)
 ![Next.js 15](https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=nextdotjs&logoColor=white)
+
+- **Live Interactive Demo (DE / EN):** https://parkvektor-private-de.vercel.app *(self-contained browser sandbox — try plate `M-PV 2026E` on `/de/pay`, German QWERTZ `/de/kiosk`, AutoPay `/de/autopay`, Kino-Welt `/de/validate`, dispute `VF-2026-000002` / `F-WD 999` on `/de/dispute`, or live ANPR simulation & DSGVO Auto-Purge on `/de/admin`)*
 
 `parkvektor-private-de` is a 100% standalone, independent R&D / reference MVP for barrier-free, ticketless private parking management in Germany (malls, retail parks, hotels, hospitals, private garages), designed around **DSGVO Privacy-by-Design** principles and German civil/tax workflows (`BGB Realofferte`, `Art. 5/6/13/35 DSGVO`, `§ 147 AO`, `§ 39 StVG`).
 
