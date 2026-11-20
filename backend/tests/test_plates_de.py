@@ -49,6 +49,10 @@ def test_german_seasonal_plate():
     assert seas.season_end_month == 10
     assert seas.display == "K-AB 911 04/10"
 
+    same_month = parse_plate("K-AB 911 04/04")
+    assert same_month.season_start_month is None
+    assert same_month.plate_type != "SEASONAL"
+
 
 def test_german_dealer_and_diplomatic_plates():
     dealer = parse_plate("M-06123")

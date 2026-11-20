@@ -106,12 +106,15 @@ def parse_plate(raw: str) -> ParsedPlate:
     season_end: int | None = None
     work = cleaned
 
-    # Check for seasonal suffix like "04/10" at the end
+    # Check for seasonal suffix like "04/10" at the end (FZV requires distinct start and end months)
     season_match = _DE_SEASONAL_TAIL.search(work)
     if season_match:
-        season_start = int(season_match.group(1))
-        season_end = int(season_match.group(2))
-        work = work[: season_match.start()].strip(" -")
+        s_start = int(season_match.group(1))
+        s_end = int(season_match.group(2))
+        if s_start != s_end:
+            season_start = s_start
+            season_end = s_end
+            work = work[: season_match.start()].strip(" -")
 
     # 1. German Diplomatic (e.g. "0-17-1")
     dip_match = _DE_DIPLOMATIC_REGEX.match(work)
