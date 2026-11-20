@@ -76,6 +76,8 @@ def test_weekday_progressive_overtime_and_german_vat():
     assert res.net_cents + res.vat_cents == 700
     assert res.net_cents == 588
     assert res.vat_cents == 112
+    assert split_german_vat(-100, 1900) == (0, 0)
+    assert split_german_vat(700, 0) == (700, 0)
 
 
 def test_weekend_all_day_free():
