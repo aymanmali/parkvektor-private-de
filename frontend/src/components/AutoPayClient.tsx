@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CheckCircle2, Download, Trash2, Zap } from "lucide-react";
 import { GermanPlateBadge } from "@/components/GermanPlateBadge";
 import { Navbar } from "@/components/Navbar";
-import { API_BASE_URL, api, AutoPayAccount } from "@/lib/api";
+import { api, AutoPayAccount, downloadInvoicePdf } from "@/lib/api";
 import { DICT, formatDateTime, formatEur, Locale } from "@/lib/i18n";
 
 export function AutoPayClient({ locale }: { locale: Locale }) {
@@ -180,15 +180,14 @@ export function AutoPayClient({ locale }: { locale: Locale }) {
                           {formatDateTime(inv.issued_at, locale)}
                         </p>
                       </div>
-                      <a
-                        href={`${API_BASE_URL}${inv.pdf_url}`}
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => downloadInvoicePdf(inv.invoice_number)}
                         className="inline-flex items-center gap-1 rounded-lg bg-emerald-600/20 px-2.5 py-1.5 font-semibold text-emerald-300 hover:bg-emerald-600/30"
                       >
                         <Download className="h-3.5 w-3.5" />
                         PDF
-                      </a>
+                      </button>
                     </div>
                   ))}
                 </div>

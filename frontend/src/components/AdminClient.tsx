@@ -19,12 +19,11 @@ import {
 import { GermanPlateBadge } from "@/components/GermanPlateBadge";
 import { Navbar } from "@/components/Navbar";
 import {
-  API_BASE_URL,
   AdminDisputeItem,
   AdminOverview,
   AdminSession,
   api,
-  DEMO_ADMIN_API_KEY,
+  downloadAdminArtifact,
   DSGVOPurgeAuditRow,
   ViolationAdminItem,
 } from "@/lib/api";
@@ -160,17 +159,7 @@ export function AdminClient({ locale }: { locale: Locale }) {
   }
 
   async function downloadWithAdminKey(path: string, filename: string) {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
-      headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-    });
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+    await downloadAdminArtifact(path, filename);
   }
 
   const reconciliationItems = sessions.filter((s) => s.status === "RECONCILIATION_NEEDED");

@@ -6,11 +6,14 @@ import {
   Car,
   LayoutDashboard,
   MonitorSmartphone,
+  RotateCcw,
   Scale,
   ShieldCheck,
+  Sparkles,
   Ticket,
   Zap,
 } from "lucide-react";
+import { IS_DEMO_MODE, resetDemoState } from "@/lib/api";
 import { DICT, Locale } from "@/lib/i18n";
 
 export function Navbar({ locale }: { locale: Locale }) {
@@ -78,6 +81,32 @@ export function Navbar({ locale }: { locale: Locale }) {
           </Link>
         </div>
       </div>
+
+      {IS_DEMO_MODE && (
+        <div className="border-t border-blue-500/20 bg-blue-950/50">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-1.5 text-[11px] text-blue-200 sm:px-6">
+            <div className="flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-blue-400" />
+              <span>
+                {locale === "de"
+                  ? "Interaktive Browser-Sandbox (Musterdaten · 100 % lokal im Browser, keine Server-Speicherung)"
+                  : "Interactive Browser Sandbox (Synthetic demo data · 100% client-side, zero server PII)"}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                resetDemoState();
+                window.location.reload();
+              }}
+              className="inline-flex items-center gap-1 rounded-md border border-blue-400/30 bg-blue-900/40 px-2 py-0.5 font-medium text-blue-100 transition hover:bg-blue-800/60"
+            >
+              <RotateCcw className="h-3 w-3" />
+              {locale === "de" ? "Demo zurücksetzen" : "Reset Demo"}
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

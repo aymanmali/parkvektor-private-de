@@ -90,6 +90,11 @@ cd ../frontend && npm run build
 docker compose up --build
 ```
 
+### 6. Deploy Interactive Browser Sandbox to Vercel (Zero-Backend Demo)
+The Next.js frontend includes a self-contained client-side sandbox (`NEXT_PUBLIC_DEMO_MODE=true`, auto-enabled on Vercel when `NEXT_PUBLIC_API_BASE_URL` is unset) so all 6 DE/EN portals, tariffs, camera simulation, DSGVO purge, KBA workflow, and client-side PDF/CSV generation run interactively in each visitor's browser with zero server PII:
+1. Import `aymanmali/parkvektor-private-de` in Vercel (or run `npx vercel --prod` inside `frontend/`).
+2. Set **Root Directory** to `frontend` and click **Deploy** (no backend server or env vars required).
+
 ## Sprint Roadmap
 
 - [x] Architecture blueprint & DSGVO compliance specification

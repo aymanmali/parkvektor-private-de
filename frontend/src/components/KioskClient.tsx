@@ -4,7 +4,7 @@ import { useState } from "react";
 import { CheckCircle2, CreditCard, Delete, Download, RotateCcw } from "lucide-react";
 import { GermanPlateBadge } from "@/components/GermanPlateBadge";
 import { Navbar } from "@/components/Navbar";
-import { API_BASE_URL, api, PaymentSettledResult, SessionLookupResult } from "@/lib/api";
+import { api, downloadInvoicePdf, PaymentSettledResult, SessionLookupResult } from "@/lib/api";
 import { DICT, formatDuration, formatEur, Locale } from "@/lib/i18n";
 
 const ROWS = [
@@ -159,15 +159,17 @@ export function KioskClient({ locale }: { locale: Locale }) {
 
               {(settled?.invoice_number || lookup.invoice_number) && (
                 <div className="mt-4 border-t border-slate-800 pt-4">
-                  <a
-                    href={`${API_BASE_URL}/api/v1/public/invoices/${settled?.invoice_number || lookup.invoice_number}/pdf`}
-                    target="_blank"
-                    rel="noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const invNo = settled?.invoice_number || lookup.invoice_number;
+                      if (invNo) downloadInvoicePdf(invNo);
+                    }}
                     className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white"
                   >
                     <Download className="h-4 w-4" />
                     {t.downloadInvoice}
-                  </a>
+                  </button>
                 </div>
               )}
             </div>

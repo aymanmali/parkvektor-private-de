@@ -1,8 +1,64 @@
+import {
+  buildDemoInvoicePdfBlob,
+  buildDemoKbaCsvBlob,
+  buildDemoNoticePdfBlob,
+  demoApi,
+  resetDemoState,
+} from "@/lib/demoEngine";
+
+export const IS_DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 export const DEMO_ADMIN_API_KEY =
   process.env.NEXT_PUBLIC_ADMIN_API_KEY || "dev-admin-key-change-in-prod";
+
+export { resetDemoState };
+
+function triggerBlobDownload(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export function downloadInvoicePdf(invoiceNumber: string): void {
+  if (IS_DEMO_MODE) {
+    triggerBlobDownload(buildDemoInvoicePdfBlob(invoiceNumber), `${invoiceNumber}.pdf`);
+    return;
+  }
+  window.open(
+    `${API_BASE_URL}/api/v1/public/invoices/${encodeURIComponent(invoiceNumber)}/pdf`,
+    "_blank",
+    "noopener,noreferrer"
+  );
+}
+
+export async function downloadAdminArtifact(path: string, filename: string): Promise<void> {
+  if (IS_DEMO_MODE) {
+    if (path.includes("kba-batch.csv")) {
+      triggerBlobDownload(buildDemoKbaCsvBlob(), filename);
+      return;
+    }
+    const noticeMatch = path.match(/\/violations\/([^/]+)\/notice\.pdf/);
+    if (noticeMatch) {
+      triggerBlobDownload(buildDemoNoticePdfBlob(noticeMatch[1]), filename);
+      return;
+    }
+    return;
+  }
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+  });
+  if (!res.ok) return;
+  const blob = await res.blob();
+  triggerBlobDownload(blob, filename);
+}
 
 export interface SitePublicInfo {
   site_code: string;
@@ -232,39 +288,55 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   getSiteInfo: (siteCode = "DE-DEMO-01") =>
-    apiFetch<SitePublicInfo>(`/api/v1/public/sites/${encodeURIComponent(siteCode)}/info`),
+    IS_DEMO_MODE
+      ? demoApi.getSiteInfo()
+      : apiFetch<SitePublicInfo>(`/api/v1/public/sites/${encodeURIComponent(siteCode)}/info`),
 
   lookupPlate: (plate: string) =>
-    apiFetch<SessionLookupResult>(`/api/v1/public/sessions/lookup?plate=${encodeURIComponent(plate)}`),
+    IS_DEMO_MODE
+      ? demoApi.lookupPlate(plate)
+      : apiFetch<SessionLookupResult>(
+          `/api/v1/public/sessions/lookup?plate=${encodeURIComponent(plate)}`
+        ),
 
   createCheckout: (session_id: string, locale: "de" | "en", payment_method: string) =>
-    apiFetch<CheckoutResult>("/api/v1/public/payments/checkout", {
-      method: "POST",
-      body: JSON.stringify({ session_id, locale, payment_method }),
-    }),
+    IS_DEMO_MODE
+      ? demoApi.createCheckout(session_id, locale, payment_method)
+      : apiFetch<CheckoutResult>("/api/v1/public/payments/checkout", {
+          method: "POST",
+          body: JSON.stringify({ session_id, locale, payment_method }),
+        }),
 
   confirmMockPayment: (payment_id: string, method: string) =>
-    apiFetch<PaymentSettledResult>("/api/v1/public/payments/mock-confirm", {
-      method: "POST",
-      body: JSON.stringify({ payment_id, method }),
-    }),
+    IS_DEMO_MODE
+      ? demoApi.confirmMockPayment(payment_id, method)
+      : apiFetch<PaymentSettledResult>("/api/v1/public/payments/mock-confirm", {
+          method: "POST",
+          body: JSON.stringify({ payment_id, method }),
+        }),
 
   adminOverview: () =>
-    apiFetch<AdminOverview>("/api/v1/admin/overview", {
-      headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-    }),
+    IS_DEMO_MODE
+      ? demoApi.adminOverview()
+      : apiFetch<AdminOverview>("/api/v1/admin/overview", {
+          headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+        }),
 
   adminSessions: () =>
-    apiFetch<AdminSession[]>("/api/v1/admin/sessions?limit=50", {
-      headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-    }),
+    IS_DEMO_MODE
+      ? demoApi.adminSessions()
+      : apiFetch<AdminSession[]>("/api/v1/admin/sessions?limit=50", {
+          headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+        }),
 
   adminReconcile: (sessionId: string, confirmed_plate: string, action: "APPROVE_PAIR" | "MARK_FREE") =>
-    apiFetch<AdminSession>(`/api/v1/admin/sessions/${sessionId}/reconcile`, {
-      method: "POST",
-      headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-      body: JSON.stringify({ confirmed_plate, action }),
-    }),
+    IS_DEMO_MODE
+      ? demoApi.adminReconcile(sessionId, confirmed_plate, action)
+      : apiFetch<AdminSession>(`/api/v1/admin/sessions/${sessionId}/reconcile`, {
+          method: "POST",
+          headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+          body: JSON.stringify({ confirmed_plate, action }),
+        }),
 
   adminSimulatePass: (payload: {
     lane_code: string;
@@ -273,101 +345,127 @@ export const api = {
     vendor: string;
     minutes_ago: number;
   }) =>
-    apiFetch<{ action: string; plate_display: string; calculated_fee_cents: number }>(
-      "/api/v1/admin/simulate-pass",
-      {
-        method: "POST",
-        headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-        body: JSON.stringify(payload),
-      }
-    ),
+    IS_DEMO_MODE
+      ? demoApi.adminSimulatePass(payload)
+      : apiFetch<{ action: string; plate_display: string; calculated_fee_cents: number }>(
+          "/api/v1/admin/simulate-pass",
+          {
+            method: "POST",
+            headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+            body: JSON.stringify(payload),
+          }
+        ),
 
   adminAuditLog: () =>
-    apiFetch<DSGVOPurgeAuditRow[]>("/api/v1/admin/dsgvo/audit-log", {
-      headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-    }),
+    IS_DEMO_MODE
+      ? demoApi.adminAuditLog()
+      : apiFetch<DSGVOPurgeAuditRow[]>("/api/v1/admin/dsgvo/audit-log", {
+          headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+        }),
 
   adminRunPurge: (force_immediate = true) =>
-    apiFetch<{ sessions_purged: number; s3_objects_deleted: number; events_anonymized: number }>(
-      "/api/v1/admin/dsgvo/run-purge",
-      {
-        method: "POST",
-        headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-        body: JSON.stringify({ force_immediate }),
-      }
-    ),
+    IS_DEMO_MODE
+      ? demoApi.adminRunPurge(force_immediate)
+      : apiFetch<{ sessions_purged: number; s3_objects_deleted: number; events_anonymized: number }>(
+          "/api/v1/admin/dsgvo/run-purge",
+          {
+            method: "POST",
+            headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+            body: JSON.stringify({ force_immediate }),
+          }
+        ),
 
   // Sprint 2: AutoPay
   autopayRegister: (email: string, plate_raw: string, dsgvo_consent_accepted: boolean) =>
-    apiFetch<AutoPayAccount>("/api/v1/autopay/register", {
-      method: "POST",
-      body: JSON.stringify({ email, plate_raw, dsgvo_consent_accepted }),
-    }),
+    IS_DEMO_MODE
+      ? demoApi.autopayRegister(email, plate_raw, dsgvo_consent_accepted)
+      : apiFetch<AutoPayAccount>("/api/v1/autopay/register", {
+          method: "POST",
+          body: JSON.stringify({ email, plate_raw, dsgvo_consent_accepted }),
+        }),
 
   autopayAccount: (email: string) =>
-    apiFetch<AutoPayAccount>(`/api/v1/autopay/account?email=${encodeURIComponent(email)}`),
+    IS_DEMO_MODE
+      ? demoApi.autopayAccount(email)
+      : apiFetch<AutoPayAccount>(`/api/v1/autopay/account?email=${encodeURIComponent(email)}`),
 
   autopayUnlink: (vehicleId: string) =>
-    apiFetch<{ status: string }>(`/api/v1/autopay/vehicles/${vehicleId}`, { method: "DELETE" }),
+    IS_DEMO_MODE
+      ? demoApi.autopayUnlink(vehicleId)
+      : apiFetch<{ status: string }>(`/api/v1/autopay/vehicles/${vehicleId}`, { method: "DELETE" }),
 
   // Sprint 2: Merchant Validation
   merchantValidate: (
     merchantToken: string,
     payload: { plate_raw: string; bonus_minutes?: number; full_free?: boolean; voucher_code?: string }
   ) =>
-    apiFetch<MerchantValidationResult>("/api/v1/merchants/validate", {
-      method: "POST",
-      headers: { "X-Merchant-Token": merchantToken },
-      body: JSON.stringify(payload),
-    }),
+    IS_DEMO_MODE
+      ? demoApi.merchantValidate(merchantToken, payload)
+      : apiFetch<MerchantValidationResult>("/api/v1/merchants/validate", {
+          method: "POST",
+          headers: { "X-Merchant-Token": merchantToken },
+          body: JSON.stringify(payload),
+        }),
 
   merchantRecent: (merchantToken: string) =>
-    apiFetch<{
-      merchant_name: string;
-      default_bonus_minutes: number;
-      validations: {
-        id: string;
-        plate_display: string | null;
-        bonus_minutes: number;
-        full_free: boolean;
-        voucher_code: string | null;
-        created_at: string;
-      }[];
-    }>("/api/v1/merchants/recent", {
-      headers: { "X-Merchant-Token": merchantToken },
-    }),
+    IS_DEMO_MODE
+      ? demoApi.merchantRecent(merchantToken)
+      : apiFetch<{
+          merchant_name: string;
+          default_bonus_minutes: number;
+          validations: {
+            id: string;
+            plate_display: string | null;
+            bonus_minutes: number;
+            full_free: boolean;
+            voucher_code: string | null;
+            created_at: string;
+          }[];
+        }>("/api/v1/merchants/recent", {
+          headers: { "X-Merchant-Token": merchantToken },
+        }),
 
   // Sprint 2: Violations, QA & KBA § 39 StVG
   adminViolations: () =>
-    apiFetch<ViolationAdminItem[]>("/api/v1/admin/violations", {
-      headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-    }),
+    IS_DEMO_MODE
+      ? demoApi.adminViolations()
+      : apiFetch<ViolationAdminItem[]>("/api/v1/admin/violations", {
+          headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+        }),
 
   adminEscalateOverdue: () =>
-    apiFetch<{ escalated_count: number; case_numbers: string[] }>(
-      "/api/v1/admin/violations/escalate-overdue",
-      { method: "POST", headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY } }
-    ),
+    IS_DEMO_MODE
+      ? demoApi.adminEscalateOverdue()
+      : apiFetch<{ escalated_count: number; case_numbers: string[] }>(
+          "/api/v1/admin/violations/escalate-overdue",
+          { method: "POST", headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY } }
+        ),
 
   adminReviewViolationQA: (violationId: string, decision: "APPROVE" | "REJECT", notes?: string) =>
-    apiFetch<ViolationAdminItem>(`/api/v1/admin/violations/${violationId}/qa`, {
-      method: "POST",
-      headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-      body: JSON.stringify({ decision, reviewer: "Operator QA", notes }),
-    }),
+    IS_DEMO_MODE
+      ? demoApi.adminReviewViolationQA(violationId, decision, notes)
+      : apiFetch<ViolationAdminItem>(`/api/v1/admin/violations/${violationId}/qa`, {
+          method: "POST",
+          headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+          body: JSON.stringify({ decision, reviewer: "Operator QA", notes }),
+        }),
 
   adminTriggerKBA: (violationId: string, provider: "mock_kba" | "batch_csv_kba" = "mock_kba") =>
-    apiFetch<ViolationAdminItem>(`/api/v1/admin/violations/${violationId}/kba-lookup`, {
-      method: "POST",
-      headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-      body: JSON.stringify({ provider }),
-    }),
+    IS_DEMO_MODE
+      ? demoApi.adminTriggerKBA(violationId, provider)
+      : apiFetch<ViolationAdminItem>(`/api/v1/admin/violations/${violationId}/kba-lookup`, {
+          method: "POST",
+          headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+          body: JSON.stringify({ provider }),
+        }),
 
   // Sprint 2: Public & Admin Disputes
   publicDisputeCase: (caseNumber: string, plate: string) =>
-    apiFetch<PublicDisputeCase>(
-      `/api/v1/public/disputes/case?case_number=${encodeURIComponent(caseNumber)}&plate=${encodeURIComponent(plate)}`
-    ),
+    IS_DEMO_MODE
+      ? demoApi.publicDisputeCase(caseNumber, plate)
+      : apiFetch<PublicDisputeCase>(
+          `/api/v1/public/disputes/case?case_number=${encodeURIComponent(caseNumber)}&plate=${encodeURIComponent(plate)}`
+        ),
 
   publicSubmitDispute: (payload: {
     case_number: string;
@@ -377,32 +475,40 @@ export const api = {
     nominated_driver_name?: string;
     nominated_driver_address?: string;
   }) =>
-    apiFetch<{ dispute_id: string; violation_status: string }>("/api/v1/public/disputes/submit", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+    IS_DEMO_MODE
+      ? demoApi.publicSubmitDispute(payload)
+      : apiFetch<{ dispute_id: string; violation_status: string }>("/api/v1/public/disputes/submit", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        }),
 
   publicPayPenalty: (case_number: string, plate_raw: string) =>
-    apiFetch<{ case_number: string; status: string; keeper_pii_purged: boolean }>(
-      "/api/v1/public/disputes/pay",
-      {
-        method: "POST",
-        body: JSON.stringify({ case_number, plate_raw }),
-      }
-    ),
+    IS_DEMO_MODE
+      ? demoApi.publicPayPenalty(case_number, plate_raw)
+      : apiFetch<{ case_number: string; status: string; keeper_pii_purged: boolean }>(
+          "/api/v1/public/disputes/pay",
+          {
+            method: "POST",
+            body: JSON.stringify({ case_number, plate_raw }),
+          }
+        ),
 
   adminDisputes: () =>
-    apiFetch<AdminDisputeItem[]>("/api/v1/admin/disputes", {
-      headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-    }),
+    IS_DEMO_MODE
+      ? demoApi.adminDisputes()
+      : apiFetch<AdminDisputeItem[]>("/api/v1/admin/disputes", {
+          headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+        }),
 
   adminResolveDispute: (disputeId: string, decision: "ACCEPT_CANCEL" | "REJECT_UPHOLD") =>
-    apiFetch<{ dispute_status: string; violation_status: string }>(
-      `/api/v1/admin/disputes/${disputeId}/resolve`,
-      {
-        method: "POST",
-        headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
-        body: JSON.stringify({ decision }),
-      }
-    ),
+    IS_DEMO_MODE
+      ? demoApi.adminResolveDispute(disputeId, decision)
+      : apiFetch<{ dispute_status: string; violation_status: string }>(
+          `/api/v1/admin/disputes/${disputeId}/resolve`,
+          {
+            method: "POST",
+            headers: { "X-Admin-API-Key": DEMO_ADMIN_API_KEY },
+            body: JSON.stringify({ decision }),
+          }
+        ),
 };

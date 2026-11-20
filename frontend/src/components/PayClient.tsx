@@ -13,8 +13,8 @@ import {
 import { GermanPlateBadge } from "@/components/GermanPlateBadge";
 import { Navbar } from "@/components/Navbar";
 import {
-  API_BASE_URL,
   api,
+  downloadInvoicePdf,
   PaymentSettledResult,
   SessionLookupResult,
   SitePublicInfo,
@@ -258,15 +258,14 @@ export function PayClient({ locale }: { locale: Locale }) {
                       <CheckCircle2 className="h-5 w-5 text-emerald-400" />
                       <span>{t.paidBanner}</span>
                     </div>
-                    <a
-                      href={`${API_BASE_URL}/api/v1/public/invoices/${activeInvoiceNumber}/pdf`}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => downloadInvoicePdf(activeInvoiceNumber)}
                       className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500"
                     >
                       <Download className="h-4 w-4" />
                       {t.downloadInvoice} ({activeInvoiceNumber})
-                    </a>
+                    </button>
                   </div>
                 )}
 
