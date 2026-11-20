@@ -25,7 +25,9 @@ class TariffResult:
 
 def split_german_vat(gross_cents: int, vat_rate_bps: int = 1900) -> tuple[int, int]:
     """Decompose German VAT-inclusive gross cents into (net_cents, vat_cents) using standard rounding."""
-    if gross_cents <= 0 or vat_rate_bps <= 0:
+    if gross_cents <= 0:
+        return 0, 0
+    if vat_rate_bps <= 0:
         return gross_cents, 0
     # gross = net * (1 + vat_rate_bps / 10000)
     net = int(math.floor((gross_cents * 10000) / (10000 + vat_rate_bps) + 0.5))
