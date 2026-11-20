@@ -29,6 +29,16 @@ def test_german_ev_and_historic_plates():
     assert hist.normalized == "HHAB12H"
     assert hist.display == "HH-AB 12H"
 
+    unicode_sep = parse_plate("M–PV 2026E")
+    assert unicode_sep.valid is True
+    assert unicode_sep.normalized == "MPV2026E"
+    assert unicode_sep.display == "M-PV 2026E"
+
+    dot_sep = parse_plate("M·AB 1234")
+    assert dot_sep.valid is True
+    assert dot_sep.normalized == "MAB1234"
+    assert dot_sep.display == "M-AB 1234"
+
 
 def test_german_seasonal_plate():
     seas = parse_plate("K-AB 911 04/10")

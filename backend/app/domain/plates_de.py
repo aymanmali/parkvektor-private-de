@@ -98,8 +98,9 @@ def parse_plate(raw: str) -> ParsedPlate:
     """Parse and normalize German FE-Schrift and neighboring EU license plates."""
     cleaned = raw.strip().upper()
     cleaned = re.sub(r"\s+", " ", cleaned)
-    # Normalize unicode umlaut combinations if any
+    # Normalize unicode umlaut combinations and common German plate separators (en-dash, middle dot)
     cleaned = cleaned.replace("A\u0308", "Ä").replace("O\u0308", "Ö").replace("U\u0308", "Ü")
+    cleaned = re.sub(r"[–—−·•.]", "-", cleaned)
 
     season_start: int | None = None
     season_end: int | None = None
