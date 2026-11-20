@@ -2,7 +2,39 @@
 
 **Barrierless ANPR Private Parking & Ticketing Platform for Germany**
 
+[![CI](https://github.com/aymanmali/parkvektor-private-de/actions/workflows/ci.yml/badge.svg)](https://github.com/aymanmali/parkvektor-private-de/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-0EA5E9?style=flat-square)](./LICENSE)
+![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![ONNX Runtime](https://img.shields.io/badge/ONNX_Runtime-005CED?style=flat-square&logo=onnx&logoColor=white)
+![Next.js 15](https://img.shields.io/badge/Next.js-15-000000?style=flat-square&logo=nextdotjs&logoColor=white)
+
 `parkvektor-private-de` is a 100% standalone, independent R&D / reference MVP for barrier-free, ticketless private parking management in Germany (malls, retail parks, hotels, hospitals, private garages), designed around **DSGVO Privacy-by-Design** principles and German civil/tax workflows (`BGB Realofferte`, `Art. 5/6/13/35 DSGVO`, `§ 147 AO`, `§ 39 StVG`).
+
+## UI Preview (Bilingual DE / EN Portals)
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="./docs/screenshots/admin.png" alt="Operator Admin & DSGVO Monitor" />
+      <p align="center"><b>Operator Admin &amp; DSGVO Monitor (<code>/de/admin</code>)</b><br/><sub>Live occupancy KPIs, Hybrid ANPR lane heartbeats, camera simulator &amp; OCR fuzzy-match queue</sub></p>
+    </td>
+    <td width="50%">
+      <img src="./docs/screenshots/pay.png" alt="Driver QR Checkout" />
+      <p align="center"><b>Driver QR Checkout (<code>/de/pay</code>)</b><br/><sub>German Euro plate lookup, weekday/weekend tariff breakdown (19% MwSt.) &amp; Stripe/Mock payment</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="./docs/screenshots/kiosk.png" alt="German QWERTZ Pay-on-Foot Kiosk" />
+      <p align="center"><b>Touchscreen Pay-on-Foot Kiosk (<code>/de/kiosk</code>)</b><br/><sub>German QWERTZ on-screen keypad with <code>Ä Ö Ü</code> umlauts for lobby terminals</sub></p>
+    </td>
+    <td width="50%">
+      <img src="./docs/screenshots/autopay.png" alt="Frictionless Drive-Out AutoPay Wallet" />
+      <p align="center"><b>Driver AutoPay Wallet (<code>/de/autopay</code>)</b><br/><sub>Art. 6 DSGVO opt-in plate registration for frictionless drive-out billing &amp; PDF receipts</sub></p>
+    </td>
+  </tr>
+</table>
 
 ## Architecture & Highlights
 
